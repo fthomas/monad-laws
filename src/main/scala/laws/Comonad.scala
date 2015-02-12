@@ -34,4 +34,17 @@ trait Comonad[F[_]] {
     f(extend(fa)(extract)) == f(fa)
     extend(fa)(extract) == fa
   }
+
+  // laws with compose
+
+  def leftIdentityCompose[A, B](fa: F[A], f: F[A] => B) = {
+    compose(extract[B], f)(fa) == f(fa)
+    extract(extend(fa)(f))
+  }
+
+  def rightIdentityCompose[A, B](fa: F[A], f: F[A] => B) = {
+    compose(f, extract[A])(fa) == f(fa)
+    f(extend(fa)(extract)) == f(fa)
+    extend(fa)(extract) == fa
+  }
 }
