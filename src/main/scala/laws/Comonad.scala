@@ -8,43 +8,49 @@ trait Comonad[F[_]] {
 
   // laws with extract and extend
 
-  def leftIdentity[A, B](fa: F[A], f: F[A] => B) =
-    extract(extend(fa)(f)) == f(fa)
-
-  def rightIdentity[A](fa: F[A]) =
+  def leftIdentity[A](fa: F[A]) =
     extend(fa)(extract) == fa
 
-  // derived functions
+  def rightIdentity[A, B](fa: F[A], f: F[A] => B) =
+    extract(extend(fa)(f)) == f(fa)
 
-  def compose[A, B, C](f: F[B] => C, g: F[A] => B): F[A] => C =
-    fa => f(extend(fa)(g))
+  // composition of Cokleisli arrows
 
+  // left-to-right composition
   def andThen[A, B, C](f: F[A] => B, g: F[B] => C): F[A] => C =
     fa => g(extend(fa)(f))
 
+  // right-to-left composition
+  def compose[A, B, C](f: F[B] => C, g: F[A] => B): F[A] => C =
+    fa => f(extend(fa)(g))
+
   // laws with andThen
 
+  // extract is the left identity element for left-to-right Cokleisli composition
   def leftIdentityAndThen[A, B](fa: F[A], f: F[A] => B) = {
-    andThen(f, extract[B])(fa) == f(fa)
-    extract(extend(fa)(f))
-  }
-
-  def rightIdentityAndThen[A, B](fa: F[A], f: F[A] => B) = {
     andThen(extract[A], f)(fa) == f(fa)
     f(extend(fa)(extract)) == f(fa)
     extend(fa)(extract) == fa
   }
 
-  // laws with compose
-
-  def leftIdentityCompose[A, B](fa: F[A], f: F[A] => B) = {
-    compose(extract[B], f)(fa) == f(fa)
+  // extract is the right identity element for left-to-right Cokleisli composition
+  def rightIdentityAndThen[A, B](fa: F[A], f: F[A] => B) = {
+    andThen(f, extract[B])(fa) == f(fa)
     extract(extend(fa)(f))
   }
 
-  def rightIdentityCompose[A, B](fa: F[A], f: F[A] => B) = {
+  // laws with compose
+
+  // extract is the right identity element for right-to-left Cokleisli composition
+  def leftIdentityCompose[A, B](fa: F[A], f: F[A] => B) = {
     compose(f, extract[A])(fa) == f(fa)
     f(extend(fa)(extract)) == f(fa)
     extend(fa)(extract) == fa
+  }
+
+  // extract is the left identity element for right-to-left Cokleisli composition
+  def rightIdentityCompose[A, B](fa: F[A], f: F[A] => B) = {
+    compose(extract[B], f)(fa) == f(fa)
+    extract(extend(fa)(f))
   }
 }
